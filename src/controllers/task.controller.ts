@@ -12,7 +12,7 @@ const createTask = async (req: Request, res: Response) => {
 
 const getAllTasks = async (req: Request, res: Response) => {
   try {
-    const tasks = await Task.find({ isDeleted: false });
+    const tasks = await Task.find({ isDeleted: false }).select('-__v -updatedAt -isDeleted')
     return res.status(200).json(tasks);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
@@ -21,7 +21,7 @@ const getAllTasks = async (req: Request, res: Response) => {
 
 const getTaskById = async (req: Request, res: Response) => {
   try {
-    const task = await Task.findOne({ _id: req.params.id, isDeleted: false });
+    const task = await Task.findOne({ _id: req.params.id, isDeleted: false }).select('-__v -updatedAt -isDeleted');
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
