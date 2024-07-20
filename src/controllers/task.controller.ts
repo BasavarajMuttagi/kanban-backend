@@ -36,7 +36,7 @@ const updateTaskById = async (req: Request, res: Response) => {
     const { title, description, status } = req.body;
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, isDeleted: false },
-      { $set: { title, description, status } }
+      { $set: { title, description, status } },
     );
 
     if (!task) {
