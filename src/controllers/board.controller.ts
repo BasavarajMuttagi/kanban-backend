@@ -45,9 +45,23 @@ const createNewBoard = async (req: Request, res: Response) => {
 
 const getAllBoards = async (req: Request, res: Response) => {
   try {
-    const boards = await Board.find().select("-__v -updatedAt -columns");
+    const pipeline = [
+      {
+        $project: {
+          _id: 0,
+          boardId: "$_id",
+          name: 1,
+          description: 1,
+          createdAt: 1,
+        },
+      },
+    ];
+
+    const boards = await Board.aggregate(pipeline);
+
     return res.status(200).json(boards);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
