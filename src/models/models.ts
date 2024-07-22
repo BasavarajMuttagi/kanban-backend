@@ -1,5 +1,25 @@
 import mongoose, { model, Schema } from "mongoose";
 
+const userSchema = new mongoose.Schema({
+  firstname: {
+    type: String,
+    required: true,
+  },
+  lastname: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+});
+
 const BoardSchema = new Schema(
   {
     name: { type: String, required: true },
@@ -60,5 +80,5 @@ const TaskOrderInAColumn = model(
   "TaskOrderInAColumn",
   TaskOrderInAColumnSchema,
 );
-
-export { Board, Column, Task, TaskOrderInAColumn };
+const User = mongoose.model("User", userSchema);
+export { Board, Column, Task, TaskOrderInAColumn, User };
