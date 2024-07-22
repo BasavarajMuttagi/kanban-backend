@@ -1,29 +1,64 @@
-import { model, Schema } from "mongoose";
+import mongoose, { model, Schema } from "mongoose";
 
-const taskSchema = new Schema(
+const BoardSchema = new Schema(
   {
-    title: {
-      type: String,
+    name: { type: String, required: true },
+    description: String,
+    columns: [{ type: mongoose.Schema.Types.ObjectId, ref: "Column" }],
+  },
+  { timestamps: true },
+);
+
+const ColumnSchema = new Schema({
+  name: {
+    type: String,
+    enum: ["TODO", "IN_PROGRESS", "DONE"],
+    required: true,
+  },
+  boardId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Board",
+    required: true,
+  },
+  taskOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TaskOrderInAColumn",
+    required: true,
+  },
+});
+
+const TaskSchema = new Schema(
+  {
+    title: { type: String, required: true },
+    description: String,
+    columnId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Column",
       required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      trim: true,
     },
     status: {
       type: String,
       enum: ["TODO", "IN_PROGRESS", "DONE"],
       default: "TODO",
     },
-    isDeleted: {
-      type: Boolean,
-      default: false,
-    },
   },
   { timestamps: true },
 );
 
-const Task = model("Task", taskSchema);
+const TaskOrderInAColumnSchema = new Schema({
+  tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
+  columnId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Column",
+  },
+});
 
-export { Task };
+const Board = model("Board", BoardSchema);
+const Column = model("Column", ColumnSchema);
+const Task = model("Task", TaskSchema);
+const TaskOrderInAColumn = model(
+  "TaskOrderInAColumn",
+  TaskOrderInAColumnSchema,
+);
+
+export { Board, Column, Task, TaskOrderInAColumn };

@@ -2,7 +2,8 @@ import { config } from "dotenv";
 import express from "express";
 import cors from "cors";
 import { connect } from "mongoose";
-import TaskRouter from "./src/routes/task.route";
+import BoardRouter from "./src/routes/board.route";
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -10,7 +11,7 @@ config();
 const PORT = process.env.PORT;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-app.use("/task", TaskRouter);
+app.use("/board", BoardRouter);
 app.get("/", (req, res) => {
   res.send("Express + TypeScript Servers");
 });
