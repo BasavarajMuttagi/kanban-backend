@@ -100,40 +100,45 @@ const getBoardById = async (req: Request, res: Response) => {
         },
       },
       {
+        $unwind: "$columnsData.taskOrder",
+      },
+      {
         $lookup: {
           from: "tasks",
           localField: "columnsData.taskOrder.tasks",
           foreignField: "_id",
-          pipeline: [
-            {
-              $project: {
-                updatedAt: 0,
-                __v: 0,
-                columnId: 0,
+          as: "columnsData.taskDetails",
+        },
+      },
+      {
+        $addFields: {
+          "columnsData.taskDetails": {
+            $map: {
+              input: "$columnsData.taskOrder.tasks",
+              as: "taskId",
+              in: {
+                $arrayElemAt: [
+                  {
+                    $filter: {
+                      input: "$columnsData.taskDetails",
+                      cond: { $eq: ["$$this._id", "$$taskId"] },
+                    },
+                  },
+                  0,
+                ],
               },
             },
-          ],
-          as: "columnsData.taskOrder",
+          },
         },
       },
       {
         $group: {
           _id: "$_id",
-          name: {
-            $first: "$name",
-          },
-          description: {
-            $first: "$description",
-          },
-          columns: {
-            $push: "$columnsData",
-          },
-          createdAt: {
-            $first: "$createdAt",
-          },
-          updatedAt: {
-            $first: "$updatedAt",
-          },
+          name: { $first: "$name" },
+          description: { $first: "$description" },
+          columns: { $push: "$columnsData" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
         },
       },
       {
@@ -150,7 +155,7 @@ const getBoardById = async (req: Request, res: Response) => {
                 columnId: "$$column._id",
                 name: "$$column.name",
                 taskOrderId: "$$column.taskOrderId",
-                tasks: "$$column.taskOrder",
+                tasks: "$$column.taskDetails", // Tasks in the original order
               },
             },
           },
@@ -210,10 +215,95 @@ const updateTaskById = async (req: Request, res: Response) => {
   }
 };
 
+const updateOrder = async (req: Request, res: Response) => {
+  try {
+    const { taskOrderId, tasks } = req.body;
+
+    console.log({ taskOrderId, tasks });
+    const task = await TaskOrderInAColumn.findOneAndUpdate(
+      { _id: taskOrderId },
+      { $set: { tasks } },
+    );
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const updateSourceAndDestination = async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const {
+      status,
+      taskId,
+      sourceTaskOrderId,
+      destinationTaskOrderId,
+      sourceTasks,
+      destinationTasks,
+    } = req.body;
+
+    // Update the task
+    const taskUpdate = await Task.findOneAndUpdate(
+      { _id: taskId },
+      { $set: { status } },
+      { session },
+    );
+
+    if (!taskUpdate) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // Update the task order source
+    const taskOrderUpdateSource = await TaskOrderInAColumn.findOneAndUpdate(
+      { _id: sourceTaskOrderId },
+      { $set: { tasks: sourceTasks } },
+      { session },
+    );
+
+    if (!taskOrderUpdateSource) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Task order not found" });
+    }
+
+    // Update the task order destination
+    const taskOrderUpdateDestination =
+      await TaskOrderInAColumn.findOneAndUpdate(
+        { _id: destinationTaskOrderId },
+        { $set: { tasks: destinationTasks } },
+        { session },
+      );
+
+    if (!taskOrderUpdateDestination) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Task order not found" });
+    }
+
+    // Commit the transaction
+    await session.commitTransaction();
+    return res.sendStatus(200);
+  } catch (error) {
+    await session.abortTransaction();
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    session.endSession();
+  }
+};
+
 export {
   createNewBoard,
   createTask,
   getAllBoards,
   getBoardById,
   updateTaskById,
+  updateOrder,
+  updateSourceAndDestination,
 };
