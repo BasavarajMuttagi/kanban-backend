@@ -1,23 +1,45 @@
 import mongoose, { model, Schema } from "mongoose";
 
-const userSchema = new mongoose.Schema({
-  firstname: {
-    type: String,
-    required: true,
+const userSchema = new mongoose.Schema(
+  {
+    firstname: {
+      type: String,
+      required: true,
+    },
+    lastname: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: false,
+    },
+    googleId: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    authProvider: {
+      type: String,
+      required: true,
+      enum: ["local", "google"],
+      default: "local",
+    },
   },
-  lastname: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
+  { timestamps: true },
+);
+
+userSchema.pre("save", function (next) {
+  if (this.authProvider === "local" && !this.password) {
+    const err = new Error("Password is required for local auth provider");
+    return next(err);
+  }
+  next();
 });
 
 const BoardSchema = new Schema(
