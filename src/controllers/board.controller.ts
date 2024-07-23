@@ -212,10 +212,10 @@ const createTask = async (req: Request, res: Response) => {
 
 const updateTaskById = async (req: Request, res: Response) => {
   try {
-    const { title, description, status } = req.body;
+    const { title, description } = req.body;
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id },
-      { $set: { title, description, status } },
+      { $set: { title, description } },
     );
 
     if (!task) {

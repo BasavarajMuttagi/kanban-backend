@@ -15,7 +15,7 @@ BoardRouter.post("/create-board", validateToken, createNewBoard);
 BoardRouter.get("/list", validateToken, getAllBoards);
 BoardRouter.post("/task/create", validateToken, createTask);
 BoardRouter.get("/:boardId", validateToken, getBoardById);
-BoardRouter.put("/task/update/:id", validateToken, updateTaskById);
+BoardRouter.post("/task/update/:id", validateToken, updateTaskById);
 BoardRouter.post("/task/update/order", validateToken, updateOrder);
 BoardRouter.post(
   "/task/update/source-destination",
