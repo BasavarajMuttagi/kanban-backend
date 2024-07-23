@@ -311,6 +311,47 @@ const updateSourceAndDestination = async (req: Request, res: Response) => {
   }
 };
 
+const deleteTaskAndUpdateOrder = async (req: Request, res: Response) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { taskId, taskOrderId } = req.body as {
+      taskId: string;
+      taskOrderId: string;
+    };
+    const _id = new mongoose.Types.ObjectId(taskOrderId);
+    const deletedTask = await Task.findByIdAndDelete(taskId, { session });
+
+    if (!deletedTask) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const updatedTaskOrderInColumn = await TaskOrderInAColumn.findOneAndUpdate(
+      { _id },
+      { $pull: { tasks: taskId } },
+      { session },
+    );
+
+    if (!updatedTaskOrderInColumn) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: "Task order not found" });
+    }
+
+    await session.commitTransaction();
+    return res
+      .status(200)
+      .json({ message: "Task deleted and order updated successfully" });
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error in deleteTaskAndUpdateOrder:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    session.endSession();
+  }
+};
+
 export {
   createNewBoard,
   createTask,
@@ -319,4 +360,5 @@ export {
   updateTaskById,
   updateOrder,
   updateSourceAndDestination,
+  deleteTaskAndUpdateOrder,
 };

@@ -2,6 +2,7 @@ import express from "express";
 import {
   createNewBoard,
   createTask,
+  deleteTaskAndUpdateOrder,
   getAllBoards,
   getBoardById,
   updateOrder,
@@ -22,5 +23,7 @@ BoardRouter.post(
   validateToken,
   updateSourceAndDestination,
 );
+
+BoardRouter.post("/task/delete/", validateToken, deleteTaskAndUpdateOrder);
 
 export default BoardRouter;
