@@ -50,7 +50,13 @@ const createNewBoard = async (req: Request, res: Response) => {
 
 const getAllBoards = async (req: Request, res: Response) => {
   try {
+    const user = req.body.user as tokenType;
     const pipeline = [
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(user.userId),
+        },
+      },
       {
         $project: {
           _id: 0,
@@ -73,6 +79,7 @@ const getAllBoards = async (req: Request, res: Response) => {
 
 const getBoardById = async (req: Request, res: Response) => {
   try {
+    const user = req.body.user as tokenType;
     const boardId = new mongoose.Types.ObjectId(req.params.boardId);
     const board = await Board.findById(boardId);
     if (!board) {
@@ -83,6 +90,7 @@ const getBoardById = async (req: Request, res: Response) => {
       {
         $match: {
           _id: boardId,
+          userId: new mongoose.Types.ObjectId(user.userId),
         },
       },
       {
