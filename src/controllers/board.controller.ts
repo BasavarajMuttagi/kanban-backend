@@ -1,13 +1,18 @@
 import { Request, Response } from "express";
 import mongoose, { startSession } from "mongoose";
 import { Board, Column, Task, TaskOrderInAColumn } from "../models/models";
+import { tokenType } from "../middlewares/auth.middleware";
 
 const createNewBoard = async (req: Request, res: Response) => {
+  const user = req.body.user as tokenType;
   const { name, description } = req.body;
   const session = await startSession();
   session.startTransaction();
   try {
-    const savedBoard = await Board.create([{ name, description }], { session });
+    const savedBoard = await Board.create(
+      [{ name, description, userId: user.userId }],
+      { session },
+    );
 
     const savedTaskOrders = await TaskOrderInAColumn.create([{}, {}, {}], {
       session,
