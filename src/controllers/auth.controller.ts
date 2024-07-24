@@ -60,6 +60,7 @@ const LoginUser = async (req: Request, res: Response) => {
     res.status(200).send({
       user: {
         fullname,
+        email: UserRecord.email,
       },
       token: token,
       message: "success",
