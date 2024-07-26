@@ -42,7 +42,7 @@ const LoginUser = async (req: Request, res: Response) => {
     const fullname = `${UserRecord.firstname} ${UserRecord.lastname}`;
     const isPasswordMatch = await bcrypt.compare(
       password,
-      UserRecord.password as string
+      UserRecord.password as string,
     );
     if (!isPasswordMatch) {
       res.status(400).send({ message: "email or password incorrect" });
@@ -55,7 +55,7 @@ const LoginUser = async (req: Request, res: Response) => {
         name: fullname,
       },
       SECRET_SALT,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
     res.status(200).send({
       user: {
@@ -130,14 +130,14 @@ const GoogleAuthCallback = async (req: Request, res: Response) => {
         name: `${user.firstname} ${user.lastname}`,
       },
       SECRET_SALT,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     return res.redirect(`${APP_BASE_URL}/redirect?token=${token}&success=true`);
   } catch (error) {
     console.error("Error during Google authentication:", error);
     return res.redirect(
-      `${APP_BASE_URL}/redirect?success=false&error=${"Error during Google authentication:"}`
+      `${APP_BASE_URL}/redirect?success=false&error=${"Error during Google authentication:"}`,
     );
   }
 };
